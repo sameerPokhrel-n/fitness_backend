@@ -8,6 +8,9 @@ const router = Router();
 
 // Local auth
 router.post("/register", authCtrl.register);
+router.post("/verify-otp", authCtrl.verifyOtp);
+router.post("/password-reset/request", authCtrl.requestPasswordResetOtp);
+router.post("/password-reset/confirm", authCtrl.resetPasswordWithOtp);
 router.post("/login", authCtrl.login);
 router.post("/refresh", authCtrl.refresh);
 router.post("/logout", authCtrl.logout);

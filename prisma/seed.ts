@@ -1,76 +1,76 @@
 import prisma from "../src/prisma";
+import bcrypt from "bcrypt";
+
 
 async function main() {
-  // Delete all existing records
-  await prisma.user.deleteMany();
+  // 1. Create Admin User (author for exercises)
+  const adminPassword = await bcrypt.hash("Admin@123", 10);
 
-  // Create users
-  const alice = await prisma.user.create({
-    data: {
-      email: 'alice@example.com',
-      name: 'Alice Johnson',
-      username: 'alicej',
-      password: 'password123', // Use proper hashing in production!
-    },
-  });
-
-  const bob = await prisma.user.create({
-    data: {
-      email: 'bob@example.com',
-      name: 'Bob Smith',
-      password: 'password456', // Use proper hashing in production!
-    },
-  });
-
-  // Create posts with author
-  const post1 = await prisma.post.create({
-    data: {
-      title: 'Getting Started with Prisma',
-      content: 'This is a post about Prisma ORM and how to use it effectively with PostgreSQL...',
-      published: true,
-      author: {
-        connect: { id: alice.id },
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@fitnessapp.com" },
+    update: {},
+    create: {
+      email: "admin@fitnessapp.com",
+      password: adminPassword,
+      isVerified: true,
+      role: "ADMIN",
+      profile: {
+        create: {
+          heightCm: 175,
+          weightKg: 70,
+        },
       },
     },
   });
 
-  const post2 = await prisma.post.create({
-    data: {
-      title: 'Advanced PostgreSQL Features',
-      content: 'In this post, we explore some advanced PostgreSQL features and how they integrate with Prisma...',
-      published: true,
-      author: {
-        connect: { id: bob.id },
+  // 2. Create Sample Exercises
+  await prisma.exercise.createMany({
+    data: [
+      {
+        category: "Strength",
+        authorId: admin.id,
+        title: "Push Up",
+        description: "A bodyweight exercise for chest, shoulders, and triceps.",
+        difficulty: "Beginner",
+        muscleGroup: "Chest",
       },
-    },
+      {
+        category: "Strength",
+        authorId: admin.id,
+        title: "Squat",
+        description: "A compound movement for quads, hamstrings, and glutes.",
+        difficulty: "Beginner",
+        muscleGroup: "Legs",
+      },
+      {
+        category: "Core",
+        authorId: admin.id,
+        title: "Plank",
+        description: "Isometric exercise for core stability and endurance.",
+        difficulty: "Intermediate",
+        muscleGroup: "Abs",
+      },
+      {
+        category: "Cardio",
+        authorId: admin.id,
+        title: "Running",
+        description: "Cardiovascular endurance activity for overall fitness.",
+        difficulty: "Intermediate",
+        muscleGroup: "Full Body",
+      },
+      {
+        category: "Flexibility",
+        authorId: admin.id,
+        title: "Yoga Sun Salutation",
+        description: "A sequence of yoga poses improving flexibility and balance.",
+        difficulty: "Advanced",
+        muscleGroup: "Full Body",
+      },
+    ],
+    skipDuplicates: true,
   });
 
-  // Create comments
-  await prisma.comment.create({
-    data: {
-      content: 'Great post! I learned a lot.',
-      author: {
-        connect: { id: bob.id },
-      },
-      post: {
-        connect: { id: post1.id },
-      },
-    },
-  });
-
-  await prisma.comment.create({
-    data: {
-      content: 'Thanks for sharing this information!',
-      author: {
-        connect: { id: alice.id },
-      },
-      post: {
-        connect: { id: post2.id },
-      },
-    },
-  });
-
-  console.log('Database has been seeded!');
+  console.log("✅ Seed data created with Admin and Exercises");
 }
 
 main()
@@ -81,3 +81,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

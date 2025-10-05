@@ -14,13 +14,35 @@ model User {
   username      String?   @unique
   name          String?
   avatar        String?
+  role          Role?     @default(USER)
   provider      AuthProvider? // "LOCAL", "GOOGLE", "FACEBOOK"
   providerId    String? @unique   // id from provider if OAuth
+  isVerified    Boolean  @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   profile       Profile?
   exercises     Exercise[] @relation("authorExercises")
   refreshTokens RefreshToken[]
+  otpTokens     OtpToken[]
+  passwordResetToken PasswordResetToken?
+}
+model OtpToken {
+  id        String   @id @default(uuid())
+  otp       String
+  userId    String
+  purpose   String   // "SIGNUP" or "PASSWORD_RESET"
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }
 
 model Profile {
@@ -38,6 +60,7 @@ model Profile {
 
 model Exercise {
   id          String   @id @default(uuid())
+  category    String   // e.g., Strength, Cardio, Flexibility
   author      User     @relation(fields: [authorId], references: [id], name: "authorExercises")
   authorId    String
   title       String
@@ -64,4 +87,12 @@ enum AuthProvider {
   LOCAL
   GOOGLE
   FACEBOOK
+}
+enum Role {
+  ADMIN
+  USER
+  TRAINER
+  NUTRITIONIST
+  MODERATOR
+  GUEST
 }
