@@ -6,7 +6,6 @@ import prisma from "../prisma";
 
 const router = Router();
 
-// Local auth
 router.post("/register", authCtrl.register);
 router.post("/verify-otp", authCtrl.verifyOtp);
 router.post("/password-reset/request", authCtrl.requestPasswordResetOtp);
